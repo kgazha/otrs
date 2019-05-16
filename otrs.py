@@ -32,13 +32,17 @@ def lines_working_time(df, name_emergence_time, name_lock_time, full_time=False)
     lock_time = df[name_lock_time]
     in_working = []
     for i in range(len(df)):
-        if lock_time[i] != '\\N':
+        result = None
+        # if lock_time[i] != '\\N':
+        try:
             if full_time:
                 result = FirstLineWorkingTime().compute_working_time(emergence_time[i], lock_time[i], False)
             else:
                 result = RegularWorkingTime().compute_working_time(emergence_time[i], lock_time[i], False)
-        else:
-            result = ''
+        except:
+            pass
+        # else:
+            # result = ''
         in_working.append(result)
     return in_working
 
@@ -50,12 +54,12 @@ def close_time_calculation(df):
         if df['auto_close'][i] != '\\N':
             result = RegularWorkingTime().compute_working_time(df['tcreatetime'][i], df['auto_close'][i], False)
         else:
-            result = ''
+            result = None
         auto_close.append(result)
         if df['closed'][i] != '\\N':
             result = RegularWorkingTime().compute_working_time(df['tcreatetime'][i], df['closed'][i], False)
         else:
-            result = ''
+            result = None
         forced_close.append(result)
     df['auto_closed'] = auto_close
     df['forced_close'] = forced_close
@@ -158,23 +162,30 @@ def subtract_waiting_time(df):
         waiting_ticket_dict[k] = compute_contractor_time(ticket_history_df[ticket_history_df[2] == k])
     for idx, val in df.iterrows():
         if val.tid in waiting_ticket_dict.keys():
-            if val['forced_close']:
-                if val['forced_close'] > waiting_ticket_dict[val.tid]:
-                    df.at[idx, 'forced_close'] = val['forced_close'] - waiting_ticket_dict[val.tid]
-            if val['auto_closed']:
-                if val['auto_closed'] > val['forced_close']:
-                    df.at[idx, 'auto_closed'] = val['auto_closed'] - waiting_ticket_dict[val.tid]
-            # if df.at[idx, 'artbody'] is not np.nan:
+            try:
+                if val['forced_close']:
+                    if val['forced_close'] > waiting_ticket_dict[val.tid]:
+                        df.at[idx, 'forced_close'] = val['forced_close'] - waiting_ticket_dict[val.tid]
+                if val['auto_closed']:
+                    if val['auto_closed'] > val['forced_close']:
+                        df.at[idx, 'auto_closed'] = val['auto_closed'] - waiting_ticket_dict[val.tid]
+                # if df.at[idx, 'artbody'] is not np.nan:
+            except:
+                pass
         if df.at[idx, 'artbody']:
-            df.at[idx, 'artbody'] = df.at[idx, 'artbody'][:1000]
+            try:
+                df.at[idx, 'artbody'] = df.at[idx, 'artbody'][:1000]
+            except:
+                pass
 
 
 def compute():
-    df = pd.read_csv('report2.csv', sep=';', encoding='ansi')
+    df = pd.read_csv('report.csv', sep=';', encoding='ansi')
     close_time_calculation(df)
-    df['in_working_first'] = lines_working_time(df, 'first_line_emergence_time', 'first_move_or_lock_time', True)
-    df['in_working_others'] = lines_working_time(df, 'others_line_emergence_time', 'others_line_lock_time')
-    df['others_line_message_time'] = lines_working_time(df, 'others_line_emergence_time', 'others_line_message_time')
+    df['in_working_first'] = pd.Series(lines_working_time(df, 'first_line_emergence_time', 'first_move_or_lock_time', True)).astype(float)
+    df['in_working_others'] = pd.Series(lines_working_time(df, 'others_line_emergence_time', 'others_line_lock_time')).astype(float)
+    df['others_line_message_time'] = pd.Series(lines_working_time(df, 'others_line_emergence_time', 'others_line_message_time')).astype(float)
+    
     # stuff(df)
     subtract_waiting_time(df)
     df.to_csv('report_computed.csv', sep=';', encoding='ansi', decimal=',')
