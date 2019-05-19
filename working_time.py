@@ -39,8 +39,8 @@ class EmployeeWorkingTime:
             self.friday_end_minute = end_minute
 
     def compute_working_time(self, start_date, end_date, dayfirst=False, result_in_hours=True):
-        start = parser.parse(start_date, dayfirst=dayfirst)
-        end = parser.parse(end_date, dayfirst=dayfirst)
+        start = parser.parse(str(start_date), dayfirst=dayfirst)
+        end = parser.parse(str(end_date), dayfirst=dayfirst)
         result = 0
         for month in range(start.month, end.month + 1):
             days = end.day + 1

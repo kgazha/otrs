@@ -51,18 +51,27 @@ def close_time_calculation(df):
     auto_close = []
     forced_close = []
     for i in range(len(df)):
-        if df['auto_close'][i] != '\\N':
+        if df['auto_close'][i] != '\\N' and not pd.isnull(df['auto_close'][i]):
             result = RegularWorkingTime().compute_working_time(df['tcreatetime'][i], df['auto_close'][i], False)
         else:
             result = None
         auto_close.append(result)
-        if df['closed'][i] != '\\N':
+        if df['closed'][i] != '\\N' and not pd.isnull(df['closed'][i]):
             result = RegularWorkingTime().compute_working_time(df['tcreatetime'][i], df['closed'][i], False)
         else:
             result = None
         forced_close.append(result)
     df['auto_closed'] = auto_close
     df['forced_close'] = forced_close
+
+
+def get_dataframe_from_database():
+    sql_report = open('report.sql').read().splitlines()
+    sql_report = ' '.join(sql_report)
+    [cursor.execute(sql) for sql in sql_report.format(START_DATE).split(';')]
+    data = cursor.fetchall()
+    df = pd.DataFrame(data=list(map(lambda x: list(x.values()), data)), columns=data[0].keys())
+    return df
 
 
 def get_waiting_ticket_ids():
@@ -180,15 +189,16 @@ def subtract_waiting_time(df):
 
 
 def compute():
-    df = pd.read_csv('report.csv', sep=';', encoding='ansi')
+    # df = pd.read_csv('report.csv', sep=';', encoding='ansi')
+    df = get_dataframe_from_database()
+    df.to_excel('example.xlsx')
     close_time_calculation(df)
     df['in_working_first'] = pd.Series(lines_working_time(df, 'first_line_emergence_time', 'first_move_or_lock_time', True)).astype(float)
     df['in_working_others'] = pd.Series(lines_working_time(df, 'others_line_emergence_time', 'others_line_lock_time')).astype(float)
     df['others_line_message_time'] = pd.Series(lines_working_time(df, 'others_line_emergence_time', 'others_line_message_time')).astype(float)
     
-    # stuff(df)
     subtract_waiting_time(df)
-    df.to_csv('report_computed.csv', sep=';', encoding='ansi', decimal=',')
+    df.to_csv('report_computed.csv', sep=';', decimal=',')
 
 
 if __name__ == '__main__':
