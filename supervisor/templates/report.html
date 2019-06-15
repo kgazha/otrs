@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="mainDetails">
+        <div id="photo">
+            <!-- <img src="photo.jpg" /> -->
+        </div>
+        <div id="name">
+            <h1>{{ fio }}</h1>
+        </div>
+    </div>
+    <table border="1">
+        <th>
+            {% for title in report_header %}
+                <td>{{ title }}</td>
+            {% endfor %}
+        </th>
+        {% for row in report_content %}
+            <tr>
+                {% for cell in row %}
+                    <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

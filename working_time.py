@@ -4,12 +4,14 @@ Created on Wed Aug  1 12:56:07 2018
 @author: gazhakv
 """
 from dateutil import parser
+import os
 import calendar
 import configparser
 
 
 config = configparser.ConfigParser()
-config.read('settings.ini')
+script_path = os.path.dirname(os.path.realpath(__file__))
+config.read(os.path.join(script_path, 'settings.ini'))
 
 YEAR = int(config['DATES']['YEAR'])
 LUNCH = range(43200, 45900)

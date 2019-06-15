@@ -23,6 +23,7 @@ WORKING_DATES = [i.strip(',') for i in WORKING_DATES.split()]
 WAITING_STATES = config['DATES']['WAITING_STATES']
 WAITING_STATES = tuple([int(i.strip(',')) for i in WAITING_STATES.split()])
 START_DATE = config['DATES']['START_DATE']
+REPORT_FILENAME = config['REPORT']['REPORT_FILENAME']
 
 cursor = db.cursor(MySQLdb.cursors.DictCursor)
 
@@ -188,18 +189,18 @@ def subtract_waiting_time(df):
                 pass
 
 
-def compute():
+def get_report():
     # df = pd.read_csv('report.csv', sep=';', encoding='ansi')
     df = get_dataframe_from_database()
-    df.to_excel('example.xlsx')
+    # df.to_excel('example.xlsx')
     close_time_calculation(df)
     df['in_working_first'] = pd.Series(lines_working_time(df, 'first_line_emergence_time', 'first_move_or_lock_time', True)).astype(float)
     df['in_working_others'] = pd.Series(lines_working_time(df, 'others_line_emergence_time', 'others_line_lock_time')).astype(float)
     df['others_line_message_time'] = pd.Series(lines_working_time(df, 'others_line_emergence_time', 'others_line_message_time')).astype(float)
-    
     subtract_waiting_time(df)
-    df.to_csv('report_computed.csv', sep=';', decimal=',')
+    return df
 
 
 if __name__ == '__main__':
-    compute()
+    df = get_report()
+    df.to_csv(REPORT_FILENAME, sep=';', decimal=',')
