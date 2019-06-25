@@ -184,7 +184,7 @@ def subtract_waiting_time(df):
                 pass
         if df.at[idx, 'artbody']:
             try:
-                df.at[idx, 'artbody'] = df.at[idx, 'artbody'][:1000]
+                df.at[idx, 'artbody'] = df.at[idx, 'artbody'][:254]
             except:
                 pass
 
@@ -203,4 +203,5 @@ def get_report():
 
 if __name__ == '__main__':
     df = get_report()
-    df.to_csv(REPORT_FILENAME, sep=';', decimal=',')
+    df.to_csv(REPORT_FILENAME, sep='|', decimal=',')
+    # df.to_excel('test.xlsx')
